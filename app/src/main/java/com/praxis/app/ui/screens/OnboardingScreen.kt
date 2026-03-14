@@ -1,6 +1,7 @@
 package com.praxis.app.ui.screens
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -93,25 +94,41 @@ fun OnboardingScreen(
         // Google Sign-In
         Button(
             onClick = {
+                Log.d(TAG, "Google Sign-In button clicked")
                 coroutineScope.launch {
                     try {
+                        Log.d(TAG, "Using Client ID: ${BuildConfig.GOOGLE_WEB_CLIENT_ID}")
                         val googleIdOption = GetGoogleIdOption.Builder()
                             .setServerClientId(BuildConfig.GOOGLE_WEB_CLIENT_ID)
                             .setFilterByAuthorizedAccounts(false)
+                            .setAutoSelectEnabled(false)
                             .build()
+                        
                         val request = GetCredentialRequest.Builder()
                             .addCredentialOption(googleIdOption)
                             .build()
+                        
+                        Log.d(TAG, "Requesting credentials...")
                         val result = credentialManager.getCredential(context, request)
+                        Log.d(TAG, "Credential result received: ${result.credential.type}")
+                        
                         val credential = result.credential
                         if (credential is CustomCredential &&
                             credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
                         ) {
                             val googleIdToken = GoogleIdTokenCredential.createFrom(credential.data).idToken
+                            Log.d(TAG, "ID Token obtained successfully")
                             authViewModel.signInWithGoogle(googleIdToken)
+                        } else {
+                            Log.w(TAG, "Unexpected credential type: ${credential.type}")
+                            Toast.makeText(context, "Unexpected sign-in result", Toast.LENGTH_SHORT).show()
                         }
                     } catch (e: GetCredentialException) {
-                        Log.e(TAG, "Credential error: ${e.message}")
+                        Log.e(TAG, "Credential error: ${e.message} (Type: ${e.javaClass.simpleName})")
+                        Toast.makeText(context, "Sign-in error: ${e.message}", Toast.LENGTH_LONG).show()
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Unexpected error during sign-in", e)
+                        Toast.makeText(context, "Unexpected error: ${e.message}", Toast.LENGTH_LONG).show()
                     }
                 }
             },
