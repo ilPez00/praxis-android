@@ -1,29 +1,9 @@
 package com.praxis.app.ui.screens
 
-import android.app.Activity
 import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -35,83 +15,43 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.GoogleAuthProvider
-import com.praxis.app.R
+import com.praxis.app.BuildConfig
+import com.praxis.app.ui.viewmodel.AuthState
+import com.praxis.app.ui.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 
 private const val TAG = "OnboardingScreen"
 
-/**
- * Onboarding Screen with Google Sign-In + manual fallback
- */
 @Composable
 fun OnboardingScreen(
-    onComplete: (String, Int, String) -> Unit
+    onGoogleSignIn: (userId: String, token: String, displayName: String) -> Unit,
+    onManualContinue: (name: String, age: Int, bio: String) -> Unit,
+    authViewModel: AuthViewModel = viewModel(),
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    val authState by authViewModel.authState.collectAsStateWithLifecycle()
 
     var name by remember { mutableStateOf("") }
     var age by remember { mutableStateOf("") }
     var bio by remember { mutableStateOf("") }
-    var showError by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
-    var signInError by remember { mutableStateOf<String?>(null) }
+    var showFieldError by remember { mutableStateOf(false) }
 
-    // Credential Manager
     val credentialManager = remember { CredentialManager.create(context) }
 
-    // Launcher for Credential Manager result (no direct intent, but result contract)
-    val credentialLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            coroutineScope.launch {
-                try {
-                    val credential = credentialManager.getCredential(
-                        context = context,
-                        request = GetCredentialRequest.Builder()
-                            .addCredentialOption(
-                                GetGoogleIdOption.Builder()
-                                    .setServerClientId(context.getString(R.string.default_web_client_id))
-                                    .setFilterByAuthorizedAccounts(true)
-                                    .build()
-                            )
-                            .build()
-                    )
-
-                    if (credential is CustomCredential &&
-                        credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-                    ) {
-                        val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
-                        val idToken = googleIdTokenCredential.idToken
-
-                        // Sign in to Firebase
-                        val firebaseCredential = GoogleAuthProvider.getCredential(idToken, null)
-                        FirebaseAuth.getInstance().signInWithCredential(firebaseCredential)
-                            .addOnSuccessListener { authResult ->
-                                val user = authResult.user
-                                name = user?.displayName ?: name
-                                // Optionally pre-fill more (email, photoUrl, etc.)
-                                Log.d(TAG, "Google Sign-In success: ${user?.uid}")
-                            }
-                            .addOnFailureListener { e ->
-                                signInError = "Firebase sign-in failed: ${e.localizedMessage}"
-                                Log.e(TAG, "Firebase sign-in failed", e)
-                            }
-                    }
-                } catch (e: GetCredentialException) {
-                    signInError = "Sign-in cancelled or failed: ${e.localizedMessage}"
-                    Log.e(TAG, "Credential error", e)
-                } finally {
-                    isLoading = false
-                }
+    // Handle auth state changes
+    LaunchedEffect(authState) {
+        when (val state = authState) {
+            is AuthState.Success -> {
+                if (name.isEmpty()) name = state.displayName
+                onGoogleSignIn(state.userId, state.accessToken, state.displayName)
+                authViewModel.reset()
             }
-        } else {
-            isLoading = false
+            else -> {}
         }
     }
 
@@ -120,23 +60,22 @@ fun OnboardingScreen(
             .fillMaxSize()
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
-        // Title row
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 text = "Welcome to Praxis",
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
             )
             InfoButton(
                 title = "Getting Started",
-                description = "Create your Praxis profile. Your name and age help partners know who they're working with. A bio is optional but increases your match quality."
+                description = "Create your Praxis profile. Your name and age help partners know who they're working with. A bio is optional but increases your match quality.",
             )
         }
 
@@ -146,81 +85,79 @@ fun OnboardingScreen(
             text = "A Social Operating System for Real Progress",
             fontSize = 16.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        // Google Sign-In Button
+        // Google Sign-In
         Button(
             onClick = {
-                isLoading = true
-                signInError = null
                 coroutineScope.launch {
                     try {
                         val googleIdOption = GetGoogleIdOption.Builder()
-                            .setServerClientId(context.getString(R.string.default_web_client_id))
-                            .setFilterByAuthorizedAccounts(true)
+                            .setServerClientId(BuildConfig.GOOGLE_WEB_CLIENT_ID)
+                            .setFilterByAuthorizedAccounts(false)
                             .build()
-
                         val request = GetCredentialRequest.Builder()
                             .addCredentialOption(googleIdOption)
                             .build()
-
                         val result = credentialManager.getCredential(context, request)
-                        // The actual result comes back via launcher (intent sender flow)
-                        // Credential Manager uses StartIntentSenderForResult internally
+                        val credential = result.credential
+                        if (credential is CustomCredential &&
+                            credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+                        ) {
+                            val googleIdToken = GoogleIdTokenCredential.createFrom(credential.data).idToken
+                            authViewModel.signInWithGoogle(googleIdToken)
+                        }
                     } catch (e: GetCredentialException) {
-                        // Usually user cancels → do nothing or show message
-                        isLoading = false
+                        Log.e(TAG, "Credential error: ${e.message}")
                     }
                 }
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
-            enabled = !isLoading
+            enabled = authState !is AuthState.Loading,
         ) {
-            if (isLoading) {
+            if (authState is AuthState.Loading) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp))
             } else {
                 Text("Sign in with Google", fontSize = 16.sp)
             }
         }
 
+        if (authState is AuthState.Error) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = (authState as AuthState.Error).message ?: "Sign-in failed",
+                color = MaterialTheme.colorScheme.error,
+                fontSize = 13.sp,
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+        Text("or continue manually", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
         Spacer(modifier = Modifier.height(24.dp))
 
-        Text(
-            text = "or continue manually",
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontSize = 14.sp
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Name input (pre-filled from Google if available)
         OutlinedTextField(
             value = name,
             onValueChange = { name = it },
             label = { Text("Name") },
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
         )
-
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Age input
         OutlinedTextField(
             value = age,
-            onValueChange = { if (it.all { char -> char.isDigit() }) age = it },
+            onValueChange = { if (it.all(Char::isDigit)) age = it },
             label = { Text("Age") },
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
         )
-
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Bio input
         OutlinedTextField(
             value = bio,
             onValueChange = { bio = it },
@@ -228,51 +165,38 @@ fun OnboardingScreen(
             modifier = Modifier.fillMaxWidth(),
             minLines = 3,
             maxLines = 5,
-            placeholder = { Text("Tell us a bit about yourself...") }
+            placeholder = { Text("Tell us a bit about yourself...") },
         )
-
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Errors
-        if (showError) {
+        if (showFieldError) {
             Text(
-                text = "Please enter your name and a valid age (18-100)",
+                text = "Please enter your name and a valid age (18–100)",
                 color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-        }
-        if (signInError != null) {
-            Text(
-                text = signInError ?: "",
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 8.dp),
             )
         }
 
-        // Continue button
         Button(
             onClick = {
                 val ageInt = age.toIntOrNull()
                 if (name.isNotBlank() && ageInt != null && ageInt in 18..100) {
-                    onComplete(name, ageInt, bio)
+                    onManualContinue(name, ageInt, bio)
                 } else {
-                    showError = true
+                    showFieldError = true
                 }
             },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
+            modifier = Modifier.fillMaxWidth().height(56.dp),
         ) {
             Text("Continue to Goal Selection", fontSize = 16.sp)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-
         Text(
             text = "By continuing, you agree to build your best self",
             fontSize = 12.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
     }
 }

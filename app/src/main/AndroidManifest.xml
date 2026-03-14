@@ -9,6 +9,7 @@
 
     <application
         android:allowBackup="true"
+        android:usesCleartextTraffic="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -23,6 +24,71 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Goal Progress Widget -->
+        <receiver
+            android:name=".widget.ProgressWidgetProvider"
+            android:exported="true"
+            android:label="Goal Tracker">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.praxis.app.ACTION_INCREMENT_PROGRESS" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/progress_widget_info" />
+        </receiver>
+        <!-- Statistics Widget -->
+        <receiver
+            android:name=".widget.StatsWidgetProvider"
+            android:exported="true"
+            android:label="Praxis Stats">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/stats_widget_info" />
+        </receiver>
+
+        <!-- Axiom Last Message Widget -->
+        <receiver
+            android:name=".widget.AxiomWidgetProvider"
+            android:exported="true"
+            android:label="Axiom Chat">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/axiom_widget_info" />
+        </receiver>
+
+        <!-- Daily Message Widget -->
+        <receiver
+            android:name=".widget.DailyMessageWidgetProvider"
+            android:exported="true"
+            android:label="Daily Axiom Quote">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/daily_message_widget_info" />
+        </receiver>
+
+        <!-- Tracker Summary Widget -->
+        <receiver
+            android:name=".widget.TrackerWidgetProvider"
+            android:exported="true"
+            android:label="Praxis Trackers">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/tracker_widget_info" />
+        </receiver>
     </application>
 
 </manifest>

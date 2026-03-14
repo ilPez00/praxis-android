@@ -1,19 +1,18 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("com.google.gms.google-services")
     id("org.jetbrains.kotlin.plugin.compose")
-    //  id("org.jetbrains.kotlin.plugin.compose")
+    id("com.google.gms.google-services")
 }
 
 android {
     namespace = "com.praxis.app"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.praxis.app"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -21,15 +20,32 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        buildConfigField("String", "SUPABASE_URL", "\"https://kuyzjjbeiawnnkkrjsda.supabase.co\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"sb_publishable_gI3zbQ0L6rt7IMe8XgW2UQ_Hzzxadtd\"")
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"101857464392-ogonae71osimtc3c9qq1kpdq01mhde8b.apps.googleusercontent.com\"")
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file("praxis-release.keystore")
+            storePassword = "praxis123"
+            keyAlias = "praxis-key"
+            keyPassword = "praxis123"
+        }
     }
 
     buildTypes {
+        debug {
+            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:3001/api/\"")
+        }
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("String", "API_BASE_URL", "\"https://web-production-646a4.up.railway.app/api/\"")
         }
     }
     
@@ -44,18 +60,18 @@ android {
     
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
 dependencies {
     // Google Sign-In
     implementation("com.google.android.gms:play-services-auth:20.7.0")
-    implementation("androidx.biometric:biometric:1.1.0")  // or latest stable: check https://developer.android.com/jetpack/androidx/releases/biometric
+    implementation("androidx.biometric:biometric:1.1.0")
 
-    // Firebase
-    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
-    implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.firebase:firebase-firestore")
+    // Supabase
+    implementation("io.github.jan-tennert.supabase:auth-kt:3.4.1")
+    implementation("io.ktor:ktor-client-android:3.4.1")
 
      // Core Android
     implementation("androidx.core:core-ktx:1.12.0")

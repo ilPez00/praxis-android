@@ -73,3 +73,25 @@ data class SendMessageRequest(
 data class CompleteOnboardingRequest(
     @SerializedName("userId") val userId: String,
 )
+
+data class UpdateProgressRequest(
+    val progress: Int,
+)
+
+data class UpdateProfileRequest(
+    val name: String? = null,
+    val bio: String? = null,
+    val age: Int? = null,
+)
+
+data class GoalTreeRequest(
+    @SerializedName("userId") val userId: String,
+    val nodes: List<ApiGoalNode>,
+)
+
+data class ApiCheckin(
+    val id: String = "",
+    @SerializedName("user_id") val userId: String = "",
+    @SerializedName("checked_in") val checkedIn: Boolean = false,
+    @SerializedName("created_at") val createdAt: String = "",
+)

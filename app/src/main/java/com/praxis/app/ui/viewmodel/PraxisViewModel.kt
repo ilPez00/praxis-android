@@ -1,11 +1,14 @@
 package com.praxis.app.ui.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.praxis.app.data.ApiRepository
 import com.praxis.app.data.matching.MatchingEngine
 import com.praxis.app.data.model.*
+import com.praxis.app.data.remote.AuthTokenHolder
 import com.praxis.app.data.repository.MockRepository
+import com.praxis.app.widget.WidgetDataStore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,7 +21,7 @@ import java.util.Date
  * Extended in Session 22 to support Dashboard, Groups, Analytics, Upgrade,
  * and IdentityVerification screens ported from praxis_webapp.
  */
-class PraxisViewModel : ViewModel() {
+class PraxisViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = MockRepository()
     private val matchingEngine = MatchingEngine()
@@ -75,22 +78,33 @@ class PraxisViewModel : ViewModel() {
      * Loads the real profile, goal tree, matches and achievements from the backend.
      * Falls back to the mock user if the network call fails.
      */
-    fun signInWithFirebaseUid(firebaseUid: String, fallbackName: String, fallbackAge: Int, fallbackBio: String) {
-        val mockUser = repository.createUser(fallbackName, fallbackAge, fallbackBio)
+    /**
+     * Called after successful Supabase Google sign-in.
+     * Loads the real profile and goal tree from the backend using the Supabase JWT.
+     * Falls back to goal-selection flow if the user is new (no backend profile yet).
+     */
+    fun signInWithSupabaseUser(userId: String, accessToken: String, displayName: String) {
+        AuthTokenHolder.token = accessToken
         viewModelScope.launch {
-            apiRepo.getProfile(firebaseUid)
+            apiRepo.getProfile(userId)
                 .onSuccess { user ->
-                    apiRepo.getGoalTree(firebaseUid).onSuccess { goals ->
-                        _currentUser.value = user.copy(goalTree = goals.toMutableList())
+                    apiRepo.getGoalTree(userId).onSuccess { goals ->
+                        val fullUser = user.copy(goalTree = goals.toMutableList())
+                        _currentUser.value = fullUser
+                        WidgetDataStore.save(getApplication(), fullUser)
                     }.onFailure {
                         _currentUser.value = user
+                        WidgetDataStore.save(getApplication(), user)
                     }
-                    loadMatchesAndAchievements(firebaseUid)
+                    loadMatchesAndAchievements(userId)
+                    _uiState.value = PraxisUiState.Main()
                 }
                 .onFailure {
-                    _currentUser.value = mockUser
+                    // New user — pre-fill name from Google, send to goal selection
+                    val newUser = repository.createUser(displayName, 25, "")
+                    _currentUser.value = newUser
+                    _uiState.value = PraxisUiState.GoalSelection
                 }
-            _uiState.value = PraxisUiState.Main()
         }
     }
 
@@ -104,9 +118,12 @@ class PraxisViewModel : ViewModel() {
             apiRepo.getProfile(userId)
                 .onSuccess { user ->
                     apiRepo.getGoalTree(userId).onSuccess { goals ->
-                        _currentUser.value = user.copy(goalTree = goals.toMutableList())
+                        val fullUser = user.copy(goalTree = goals.toMutableList())
+                        _currentUser.value = fullUser
+                        WidgetDataStore.save(getApplication(), fullUser)
                     }.onFailure {
                         _currentUser.value = user
+                        WidgetDataStore.save(getApplication(), user)
                     }
                     loadMatchesAndAchievements(userId)
                 }

@@ -7,11 +7,27 @@ interface PraxisApi {
     @GET("users/{id}")
     suspend fun getProfile(@Path("id") id: String): Response<ApiProfile>
 
+    @PUT("users/{id}")
+    suspend fun updateProfile(
+        @Path("id") id: String,
+        @Body body: UpdateProfileRequest,
+    ): Response<ApiProfile>
+
     @POST("users/complete-onboarding")
     suspend fun completeOnboarding(@Body body: CompleteOnboardingRequest): Response<Map<String, String>>
 
     @GET("goals/{userId}")
     suspend fun getGoalTree(@Path("userId") userId: String): Response<ApiGoalTree>
+
+    @POST("goals")
+    suspend fun createOrUpdateGoalTree(@Body body: GoalTreeRequest): Response<ApiGoalTree>
+
+    @PATCH("goals/{userId}/node/{nodeId}/progress")
+    suspend fun updateNodeProgress(
+        @Path("userId") userId: String,
+        @Path("nodeId") nodeId: String,
+        @Body body: UpdateProgressRequest,
+    ): Response<ApiGoalNode>
 
     @GET("matches/{userId}")
     suspend fun getMatches(@Path("userId") userId: String): Response<List<ApiMatch>>
@@ -30,4 +46,11 @@ interface PraxisApi {
 
     @POST("messages")
     suspend fun sendMessage(@Body body: SendMessageRequest): Response<ApiMessage>
+
+    // Checkins — require Bearer token
+    @GET("checkins/today")
+    suspend fun getTodayCheckin(): Response<ApiCheckin>
+
+    @POST("checkins")
+    suspend fun checkIn(): Response<ApiCheckin>
 }

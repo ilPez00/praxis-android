@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">Praxis</string>
-    <string name="default_web_client_id">AIzaSyDlGjiRxkTXqNrzuSJo9Om0Yuys-_JoDrQ.apps.googleusercontent.com</string>
+    <string name="google_web_client_id">101857464392-ogonae71osimtc3c9qq1kpdq01mhde8b.apps.googleusercontent.com</string>
 </resources>
