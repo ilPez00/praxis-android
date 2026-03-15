@@ -6,8 +6,8 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
-import com.praxis.app.MainActivity
 import com.praxis.app.R
+import com.praxis.app.WebAppActivity
 
 /**
  * Widget for displaying user statistics (streak, points).
@@ -29,7 +29,7 @@ class StatsWidgetProvider : AppWidgetProvider() {
             views.setTextViewText(R.id.txt_streak_value, WidgetDataStore.getStreak(context).toString())
             views.setTextViewText(R.id.txt_points_value, WidgetDataStore.getPraxisPoints(context).toString())
 
-            val appIntent = Intent(context, MainActivity::class.java)
+            val appIntent = Intent(context, WebAppActivity::class.java)
             val pendingIntent = PendingIntent.getActivity(context, 0, appIntent, PendingIntent.FLAG_IMMUTABLE)
             views.setOnClickPendingIntent(R.id.stats_widget_container, pendingIntent)
 

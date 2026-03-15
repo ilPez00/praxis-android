@@ -6,8 +6,8 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
-import com.praxis.app.MainActivity
 import com.praxis.app.R
+import com.praxis.app.WebAppActivity
 import com.praxis.app.data.ApiRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -80,7 +80,7 @@ class ProgressWidgetProvider : AppWidgetProvider() {
                 views.setOnClickPendingIntent(R.id.btn_increment, incrementPending)
             }
 
-            val appIntent = Intent(context, MainActivity::class.java)
+            val appIntent = Intent(context, WebAppActivity::class.java)
             val appPending = PendingIntent.getActivity(context, 0, appIntent, PendingIntent.FLAG_IMMUTABLE)
             views.setOnClickPendingIntent(R.id.widget_container, appPending)
 
