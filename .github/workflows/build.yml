@@ -1,0 +1,99 @@
+name: Build Android App
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+      
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+      
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+      
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug
+      
+      - name: Build Release APK (if keystore available)
+        if: env.ANDROID_KEYSTORE_BASE64 != ''
+        run: ./gradlew assembleRelease
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: praxis-android-debug
+          path: app/build/outputs/apk/debug/*.apk
+          retention-days: 30
+      
+      - name: Upload Release APK
+        if: env.ANDROID_KEYSTORE_BASE64 != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: praxis-android-release
+          path: app/build/outputs/apk/release/*.apk
+          retention-days: 30
+      
+      - name: Create Release (on tag)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/release/*.apk
+          body: |
+            ## Android App Release
+            
+            ### Installation
+            1. Download the APK file
+            2. Enable "Install from Unknown Sources" on your Android device
+            3. Install the APK
+            
+            ### Widgets Included
+            - Daily Message Widget
+            - Progress Widget
+            - Stats Widget
+            - Tracker Widget
+            
+            ### Note
+            Debug APK is unsigned. Release APK is signed with the configured keystore.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      
+      - name: Run tests
+        run: ./gradlew test
