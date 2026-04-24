@@ -37,6 +37,15 @@ android {
     buildTypes {
         debug {
             buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:3001/api/\"")
+            packaging {
+                resources {
+                    excludes += "META-INF/DEPENDENCIES"
+                    excludes += "META-INF/LICENSE"
+                    excludes += "META-INF/LICENSE.txt"
+                    excludes += "META-INF/NOTICE"
+                    excludes += "META-INF/NOTICE.txt"
+                }
+            }
         }
         release {
             isMinifyEnabled = false
@@ -46,6 +55,15 @@ android {
                 "proguard-rules.pro"
             )
             buildConfigField("String", "API_BASE_URL", "\"https://web-production-646a4.up.railway.app/api/\"")
+            packaging {
+                resources {
+                    excludes += "META-INF/DEPENDENCIES"
+                    excludes += "META-INF/LICENSE"
+                    excludes += "META-INF/LICENSE.txt"
+                    excludes += "META-INF/NOTICE"
+                    excludes += "META-INF/NOTICE.txt"
+                }
+            }
         }
     }
     
@@ -78,7 +96,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.activity:activity-compose:1.9.0")
     implementation("androidx.appcompat:appcompat:1.7.1")
-    
+
     // Jetpack Compose
     implementation(platform("androidx.compose:compose-bom:2024.04.00"))
     implementation("androidx.compose.ui:ui")
@@ -89,17 +107,17 @@ dependencies {
 
     // Material Components
     implementation("com.google.android.material:material:1.13.0")
-    
+
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.7.7")
-    
+
     // ViewModel
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
-    
+
     // Room Database (for local storage)
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
-    
+
     // Gson for JSON parsing
     implementation("com.google.code.gson:gson:2.10.1")
 
@@ -118,6 +136,21 @@ dependencies {
 
     // Constraint Layout
     implementation("androidx.constraintlayout:constraintlayout:2.2.1")
+
+    // WorkManager for background sync
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+
+    // Health Connect for fitness data
+    implementation("androidx.health.connect:connect-client:1.1.0-alpha09")
+
+    // Google Play Services for Google APIs
+    implementation("com.google.android.gms:play-services-fitness:21.1.0")
+    implementation("com.google.api-client:google-api-client-android:2.2.0")
+    implementation("com.google.apis:google-api-services-calendar:v3-rev411-1.25.0")
+    implementation("com.google.http-client:google-http-client-gson:1.43.3")
+
+    // Browser for OAuth custom tabs
+    implementation("androidx.browser:browser:1.7.0")
 
     // Testing
     testImplementation("junit:junit:4.13.2")
