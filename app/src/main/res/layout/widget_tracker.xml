@@ -33,4 +33,16 @@
         android:textColor="@android:color/darker_gray"
         android:textSize="10sp"
         android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/txt_integration_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="No integrations connected"
+        android:textColor="#10B981"
+        android:textSize="8sp"
+        android:textStyle="bold"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:maxLines="2" />
 </LinearLayout>

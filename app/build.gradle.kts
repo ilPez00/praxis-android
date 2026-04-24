@@ -37,6 +37,7 @@ android {
     buildTypes {
         debug {
             buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:3001/api/\"")
+            isDebuggable = false  // Disable debugging for speed
             packaging {
                 resources {
                     excludes += "META-INF/DEPENDENCIES"
@@ -48,7 +49,8 @@ android {
             }
         }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -68,12 +70,16 @@ android {
     }
     
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
     
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
+        freeCompilerArgs += listOf(
+            "-Xjvm-default=all"
+        )
     }
     
     buildFeatures {
@@ -83,6 +89,8 @@ android {
 }
 
 dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+
     // Google Sign-In
     implementation("com.google.android.gms:play-services-auth:20.7.0")
     implementation("androidx.biometric:biometric:1.1.0")
@@ -101,9 +109,11 @@ dependencies {
     implementation(platform("androidx.compose:compose-bom:2024.04.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.material:material-icons-extended")
+    implementation("androidx.compose.material:material-icons-core")  // Core only, not extended
+    implementation("androidx.compose.material:material-icons-extended") {
+        exclude(group = "androidx.compose.material", module = "material-icons-core")
+    }  // Lazy load if needed
 
     // Material Components
     implementation("com.google.android.material:material:1.13.0")

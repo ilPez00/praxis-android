@@ -20,12 +20,14 @@ import java.util.Date
  * Manages all navigation state and business logic.
  * Extended in Session 22 to support Dashboard, Groups, Analytics, Upgrade,
  * and IdentityVerification screens ported from praxis_webapp.
+ * OPTIMIZED: Lazy initialization, deferred loading
  */
 class PraxisViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository = MockRepository()
-    private val matchingEngine = MatchingEngine()
-    private val apiRepo = ApiRepository()
+    // Lazy initialization for heavy objects
+    private val repository by lazy { MockRepository() }
+    private val matchingEngine by lazy { MatchingEngine() }
+    private val apiRepo by lazy { ApiRepository() }
 
     // ─── Navigation state ─────────────────────────────────────────────────────
 
