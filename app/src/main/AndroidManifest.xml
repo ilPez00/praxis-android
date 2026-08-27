@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Health Connect's SDK declares minSdk 26; the app keeps minSdk 24 and
+         every HC touchpoint is guarded by Build.VERSION.SDK_INT >= 26
+         (see HealthConnectBridge.isAvailable), so the merge is safe. -->
+    <uses-sdk tools:overrideLibrary="androidx.health.connect.client" />
+
+    <!-- Screen-time bridge: special permission, granted by the user in system
+         settings (Settings > Apps > Special access > Usage access). Powers the
+         detox oracle — social-media minutes are measured, not self-reported. -->
+    <uses-permission
+        android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
+
+    <!-- Health Connect read access (steps / calories / weight). Declared so the
+         permission flow can offer them; granted per-user inside Health Connect.
+         MyFitnessPal, Yazio, Fitbit, Google Fit and Samsung Health all write
+         through Health Connect, so one grant covers them all. -->
+    <uses-permission android:name="android.permission.health.READ_STEPS" />
+    <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED" />
+    <uses-permission android:name="android.permission.health.READ_WEIGHT" />
+
+    <application
+        android:name="com.praxis.android.PraxisApp"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:hardwareAccelerated="true"
+        android:theme="@style/Theme.AppCompat.NoActionBar">
+
+        <activity
+            android:name="com.praxis.android.MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:theme="@style/AppTheme.NoActionBarLaunch"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|screenLayout|uiMode">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Web links open straight in the app. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="praxisweb.xyz" />
+                <data android:scheme="http" android:host="praxisweb.xyz" />
+            </intent-filter>
+
+            <!-- Widgets open the app at a route via praxis:// . The scheme is
+                 private to this package and carries no data, only a route. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="praxis" />
+            </intent-filter>
+
+            <!-- OAuth return path. Google refuses to authenticate inside an
+                 embedded browser, so sign-in leaves for a Custom Tab and comes
+                 back here. This scheme must also be on GoTrue's redirect allow
+                 list, or Supabase rejects the attempt before Google is reached. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="praxis-auth" />
+            </intent-filter>
+
+            <!-- Share target: share a link or text into Praxis from anywhere. -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+
+            <!-- Health Connect permission flow: this activity is the target the
+                 Health Connect app returns to after the user grants read access
+                 (https://developer.android.com/health-and-fitness/guides/health-connect/develop/safety). -->
+            <intent-filter>
+                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+            </intent-filter>
+        </activity>
+
+        <!-- Pre-API-26 alias for the Health Connect permissions rationale. -->
+        <activity-alias
+            android:name="ViewPermissionUsageActivity"
+            android:exported="true"
+            android:targetActivity="com.praxis.android.MainActivity"
+            android:permission="android.permission.START_VIEW_PERMISSION_USAGE">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- Home-screen widgets.
+
+             android:exported="true" is required for every AppWidgetProvider:
+             the launcher is a different process and must be able to deliver
+             APPWIDGET_UPDATE. They receive broadcasts only, and read from this
+             app's own private storage. -->
+        <receiver
+            android:name=".StreakWidget"
+            android:exported="true"
+            android:label="@string/widget_streak_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_streak_info" />
+        </receiver>
+
+        <receiver
+            android:name=".TasksWidget"
+            android:exported="true"
+            android:label="@string/widget_tasks_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_tasks_info" />
+        </receiver>
+
+        <receiver
+            android:name=".CaptureWidget"
+            android:exported="true"
+            android:label="@string/widget_capture_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_capture_info" />
+        </receiver>
+
+        <receiver
+            android:name=".ChartsWidget"
+            android:exported="true"
+            android:label="@string/widget_charts_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_charts_info" />
+        </receiver>
+
+        <receiver
+            android:name=".QuickLogWidget"
+            android:exported="true"
+            android:label="@string/widget_quicklog_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="app.praxisweb.xyz.QUICK_LOG" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_quicklog_info" />
+        </receiver>
+
+        <receiver
+            android:name=".VoiceNoteWidget"
+            android:exported="true"
+            android:label="@string/widget_voice_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_voice_info" />
+        </receiver>
+
+        <!-- Feeds the rows of TasksWidget. BIND_REMOTEVIEWS is a signature-level
+             permission held by the system, so only the launcher can bind this —
+             without it any app could pull the user's plans out of the widget. -->
+        <service
+            android:name=".TasksRemoteViewsService"
+            android:permission="android.permission.BIND_REMOTEVIEWS"
+            android:exported="false" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+    </application>
+
+    <!-- Permissions -->
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Notifications (Android 13+ runtime permission). Used for sync results
+         and check-in reminders. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- The camera screen captures photos through the system camera app via
+         FileProvider; CAMERA is requested at the moment of first capture. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Voice notes: requested when the user first starts a recording, not at
+         install. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- Optional GPS tag on captures and notes. Coarse is the fallback; both
+         are runtime permissions and every feature degrades gracefully without
+         them. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- Contact picker for invites: read-only, on-device, nothing uploaded. -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
+    <!-- Declared but NOT required, so the app stays installable on devices with
+         no camera. The capture screens are one feature among many; requiring
+         hardware here would remove the app from the Play Store listing for
+         anyone whose device lacks it. -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+</manifest>

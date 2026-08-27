@@ -1,0 +1,134 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.compose'
+    id 'kotlin-kapt'
+}
+
+// The Supabase URL and anon key are public by design — the anon key ships in
+// every web bundle and is what the widget refresh worker uses to refresh the
+// session while the app process is dead. They are build constants, not secrets.
+def SUPABASE_URL = "https://kuyzjjbeiawnnkkrjsda.supabase.co"
+def SUPABASE_ANON_KEY = "sb_publishable_gI3zbQ0L6rt7IMe8XgW2UQ_Hzzxadtd"
+
+def keystoreProps = new Properties()
+def keystorePropsFile = rootProject.file("key.properties")
+if (keystorePropsFile.exists()) {
+    keystorePropsFile.withInputStream { keystoreProps.load(it) }
+}
+
+android {
+    namespace 'app.praxisweb.xyz'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.praxis'
+        minSdk 24
+        targetSdk 35
+        versionCode 12
+        versionName '3.5.0'
+
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+        vectorDrawables.useSupportLibrary = true
+
+        buildConfigField "String", "SUPABASE_URL", "\"${SUPABASE_URL}\""
+        buildConfigField "String", "SUPABASE_ANON_KEY", "\"${SUPABASE_ANON_KEY}\""
+        buildConfigField "String", "API_BASE_URL", '"https://praxisweb.xyz/api/"'
+    }
+
+    signingConfigs {
+        release {
+            if (keystorePropsFile.exists()) {
+                storeFile file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    buildFeatures {
+        compose true
+        buildConfig true
+    }
+
+    packaging {
+        resources {
+            excludes += '/META-INF/{AL2.0,LGPL2.1}'
+        }
+    }
+}
+
+dependencies {
+    implementation 'androidx.work:work-runtime-ktx:2.9.0'
+    // Java sources (WidgetRefreshWorker) extend Worker, whose abstract methods
+    // return Guava ListenableFuture; javac needs it on the compile classpath.
+    implementation 'com.google.guava:guava:33.2.1-android'
+    // WebView algorithmic darkening (WebSettingsCompat) for the shell.
+    implementation 'androidx.webkit:webkit:1.11.0'
+    // Health Connect: on-device aggregate of MyFitnessPal, Yazio, Fitbit,
+    // Google Fit and Samsung Health. Backs the health_connect oracle.
+    implementation 'androidx.health.connect:connect-client:1.1.0-alpha07'
+
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.core:core-splashscreen:1.0.1'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.0'
+    implementation 'androidx.activity:activity-compose:1.9.0'
+    implementation 'androidx.compose.ui:ui:1.7.0'
+    implementation 'androidx.compose.ui:ui-graphics:1.7.0'
+    implementation 'androidx.compose.ui:ui-tooling-preview:1.7.0'
+    implementation 'androidx.compose.material3:material3:1.3.0'
+    implementation 'androidx.compose.material:material-icons-extended:1.7.0'
+    implementation 'androidx.navigation:navigation-compose:2.8.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0'
+    implementation 'androidx.biometric:biometric:1.1.0'
+
+    implementation 'androidx.datastore:datastore-preferences:1.1.1'
+
+    // Widget snapshot credential storage (EncryptedSharedPreferences).
+    implementation 'androidx.security:security-crypto:1.1.0-alpha06'
+
+    // Networking
+    implementation 'com.squareup.retrofit2:retrofit:2.11.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.11.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+
+    // Images
+    implementation 'io.coil-kt:coil-compose:2.6.0'
+
+    // Offline cache + write queue
+    implementation 'androidx.room:room-runtime:2.6.1'
+    implementation 'androidx.room:room-ktx:2.6.1'
+    kapt 'androidx.room:room-compiler:2.6.1'
+
+    // Testing
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
+    debugImplementation 'androidx.compose.ui:ui-tooling'
+    debugImplementation 'androidx.compose.ui:ui-test-manifest'
+}

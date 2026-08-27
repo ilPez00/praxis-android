@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Rounded card behind every widget.
+
+  Launchers already clip widgets to their own corner radius on API 31+, but they
+  do not all do it, and a square card inside a rounded clip reads as a bug. This
+  draws the corners so the widget looks deliberate on every launcher.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/widget_background" />
+    <corners android:radius="20dp" />
+</shape>

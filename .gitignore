@@ -1,0 +1,31 @@
+# Build artifacts
+build/
+app/build/
+.gradle/
+.kotlin/
+
+# Android Studio
+.idea/
+*.iml
+captures/
+
+# Signing material — losing this means losing Play Store updates. It must
+# never be committed; keep a backup somewhere that is not a git repository.
+key.properties
+pw
+*.jks
+*.keystore
+
+# Local SDK path
+local.properties
+release/
+
+# Signing secrets — NEVER commit these
+key.properties
+*.jks
+*.keystore
+pw
+local.properties
+praxis-keystore.jks.wrongkey-44AF.bak
+# Built release binaries (attached to GitHub Releases instead)
+release/

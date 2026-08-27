@@ -1,0 +1,73 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Praxis</string>
+    <string name="title_activity_main">Praxis</string>
+    <string name="package_name">xyz.praxisweb.app</string>
+    <string name="custom_url_scheme">xyz.praxisweb.app</string>
+    <string name="login_title">Welcome back</string>
+    <string name="login_subtitle">Sign in to continue your streak</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="sign_in">Sign In</string>
+    <string name="signing_in">Signing in…</string>
+    <string name="dashboard">Dashboard</string>
+    <string name="check_in">Check In</string>
+    <string name="check_in_label">CHECK IN</string>
+    <string name="streak_label">Streak</string>
+    <string name="streak_value">Streak: %1$d days</string>
+    <string name="checked_in_today">Checked in today</string>
+    <string name="not_checked_in">Not checked in</string>
+    <string name="feed">Feed</string>
+    <string name="feed_label">FEED</string>
+    <string name="goals">GOALS</string>
+    <string name="profile">Profile</string>
+    <string name="notebook">NOTEBOOK</string>
+    <string name="social">SOCIAL</string>
+    <string name="me">ME</string>
+    <string name="logout">LOGOUT</string>
+    <string name="settings">SETTINGS</string>
+    <string name="leaderboard">LEADERBOARD</string>
+    <string name="no_posts">No posts yet. Be the first to share!</string>
+    <string name="no_entries">No entries yet. Start journaling!</string>
+    <string name="no_goals">No goals yet. Create your first goal!</string>
+    <string name="retry">Retry</string>
+    <string name="chat_list">Chats</string>
+    <string name="no_conversations">No conversations yet.</string>
+    <string name="connect_praxis">Connect</string>
+    <string name="open_bets">Open Bets</string>
+    <string name="upgrade">Upgrade</string>
+    <string name="boards">Boards</string>
+
+    <!-- Home-screen widgets. These labels are what the user reads in the
+         widget picker, so they say what the widget shows, not what it is. -->
+    <string name="widget_streak_label">Praxis streak</string>
+    <string name="widget_streak_description">Your streak and whether you have checked in today.</string>
+    <string name="widget_tasks_label">Praxis today</string>
+    <string name="widget_tasks_description">What you planned for today.</string>
+    <string name="widget_capture_label">Praxis capture</string>
+    <string name="widget_capture_description">One tap into a new note.</string>
+    <string name="widget_quicklog_label">Praxis quick log</string>
+    <string name="widget_quicklog_description">One-tap water, movement and reading logs.</string>
+    <string name="widget_voice_label">Praxis voice note</string>
+    <string name="widget_voice_description">One tap straight into recording a voice note.</string>
+    <string name="widget_charts_label">Praxis logs</string>
+    <string name="widget_charts_description">Calories, macros and lift volume over the last week.</string>
+    <!-- Widget body strings. -->
+    <string name="widget_streak_placeholder">0</string>
+    <string name="widget_checked_in">Checked in</string>
+    <string name="widget_not_checked_in">Not yet today</string>
+    <string name="widget_day_streak">day streak</string>
+    <string name="widget_no_tasks">Nothing planned</string>
+    <string name="widget_signed_out">Open Praxis to sign in</string>
+    <string name="widget_capture_cta">New note</string>
+    <string name="widget_calories">kcal today</string>
+    <string name="widget_volume">kg volume, 7d</string>
+    <string name="widget_quicklog_header">Quick log</string>
+    <string name="widget_quicklog_more">more…</string>
+    <string name="widget_voice_glyph">\uD83C\uDF99</string>
+    <string name="widget_voice_cta">voice note</string>
+
+    <!-- Screen-time / detox oracle. -->
+    <string name="screen_time_title">Screen time</string>
+    <string name="screen_time_grant">Grant usage access</string>
+</resources>
