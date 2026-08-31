@@ -1,3 +1,25 @@
+> # ⚠️ Superseded — this repository is archived
+>
+> **The Praxis Android app is not developed here any more.** It lives in
+> [`praxis_webapp`](https://github.com/ilPez00/praxis_webapp) under
+> `client/android` — a Capacitor shell with a native Kotlin/Compose layer
+> (widgets, Health Connect, UsageStats screen-time, biometric). Everything that
+> was in this repository was absorbed there: all 105 Kotlin files, and that copy
+> is a strict superset.
+>
+> The **iOS** client lives in [`praxis-ios`](https://github.com/ilPez00/praxis-ios).
+>
+> ### Why this repo looks strange in the history
+>
+> Between 2026-08-29 and 2026-08-31 the `main` branch of this repository held the
+> **iOS** project, after an iOS port was force-pushed over the Android history.
+> That was a mistake. On 2026-08-31 `main` was restored to the Android history it
+> should always have carried, and the iOS tree was moved to its own repository.
+>
+> This repository is kept read-only rather than deleted: GitHub only redirects
+> *renamed* repositories, so a deleted name can be claimed by anyone, and older
+> commits and documents still reference this one.
+
 # Praxis Android
 
 Praxis Android app with **external app integrations**, native home screen widgets, and Quick Settings tiles for seamless goal tracking and accountability.
